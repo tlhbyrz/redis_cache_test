@@ -3,7 +3,12 @@ const cors = require("cors")
 const axios = require("axios")
 
 const redis = require('redis');
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({
+    host : 'eu1-modest-frog-32302.upstash.io',
+    port : '32302',
+    password: '63fbc50f63cf49cca0bfa4d334cad63d',
+    tls:  {}
+});
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
