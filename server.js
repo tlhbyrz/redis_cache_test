@@ -13,19 +13,12 @@ const DEFAULT_EXPRATION = 3600;
 
 app.get("/comments", async (req, res) =>{
     try {
-        redisClient.get("comments", async (err, comments)=>{
-            if(err){
-                console.log("redis error: ", err.message)
-            }
-
-            if(comments != null){
-                res.json(JSON.parse(comments))
-            }else{
-                const results = await axios.get("https://jsonplaceholder.typicode.com/comments");
-                redisClient.setex("comments", DEFAULT_EXPRATION, JSON.stringify(results.data));
-                res.json(results.data)
-            }
+        const comments = await getOrSetCache("comments", async () =>{
+            const results = await axios.get("https://jsonplaceholder.typicode.com/comments");
+            return results.data
         })
+
+        res.json(comments)
     } catch (error) {
         res.json({ message: error.message })
     }
@@ -40,7 +33,7 @@ function getOrSetCache(key, cb){
                 return resolve(JSON.parse(data))
             }
             const getFromDb = await cb();
-            redisClient.setex(key, DEFAULT_EXPRATION, JSON.stringify(data));
+            redisClient.setex(key, DEFAULT_EXPRATION, JSON.stringify(getFromDb));
             resolve(getFromDb)
         })
     })
